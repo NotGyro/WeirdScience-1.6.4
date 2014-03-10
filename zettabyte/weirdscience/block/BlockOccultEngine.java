@@ -124,5 +124,4 @@ public class BlockOccultEngine extends BlockBloodEngine implements
 			}
 		}
 	}
-	
 }

@@ -11,6 +11,7 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.oredict.OreDictionary;
 import zettabyte.weirdscience.block.BlockBloodDonation;
 import zettabyte.weirdscience.block.BlockBloodEngine;
+import zettabyte.weirdscience.block.BlockGunpowderEngine;
 import zettabyte.weirdscience.block.BlockNitrateEngine;
 import zettabyte.weirdscience.block.BlockOccultEngine;
 import zettabyte.weirdscience.block.CongealedBloodBlock;
@@ -32,6 +33,7 @@ import zettabyte.weirdscience.fluid.BlockGasSmog;
 import zettabyte.weirdscience.fluid.FluidAcid;
 import zettabyte.weirdscience.fluid.FluidSmog;
 import zettabyte.weirdscience.item.Coagulant;
+import zettabyte.weirdscience.tileentity.TileEntityGunpowderEngine;
 import cpw.mods.fml.common.registry.GameRegistry;
 
 
@@ -176,6 +178,10 @@ public class WeirdScienceContent {
 		occultEngineBlock.addSidesTextureName("weirdscience:occultengine_5");
 		occultEngineBlock.addSidesTextureName("weirdscience:occultengine_6");
 		cr.RegisterBlock(occultEngineBlock);
+
+		BlockGunpowderEngine gunpowderEngineBlock = new BlockGunpowderEngine(config, "Blast Engine", Material.rock);
+		gunpowderEngineBlock.setUnlocalizedName("blockGunpowderEngine");
+		cr.RegisterBlock(gunpowderEngineBlock);
 		
 		//Init and register items.
 		ItemFoodBase itemMelonPan = new ItemFoodBase(config, "Melonpan", ItemBase.FindFreeItemID(), 3, 0.6f);
@@ -236,6 +242,7 @@ public class WeirdScienceContent {
 		itemThermite.setTextureName("weirdscience:thermiteitem");
 		cr.RegisterItem(itemThermite);
 		
+		TileEntityGunpowderEngine.thermite = itemThermite;
 		
 		//Register recipes.
 		

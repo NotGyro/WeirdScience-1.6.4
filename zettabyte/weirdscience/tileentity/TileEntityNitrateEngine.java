@@ -519,9 +519,6 @@ public class TileEntityNitrateEngine extends TileEntitySolidFueled implements IE
 				else {
 	            	TurnBlockOff();
 				}
-		        if (flagInvChanged) {
-		            this.onInventoryChanged();
-		        }
 	        }
 			//And now, attempt to charge surrounding blocks.
 			if (flagHasPower) {
