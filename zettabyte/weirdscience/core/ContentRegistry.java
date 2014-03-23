@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.creativetab.CreativeTabs;
@@ -31,6 +33,7 @@ import zettabyte.weirdscience.core.interfaces.IWeirdScienceBlock;
 import zettabyte.weirdscience.core.interfaces.IWeirdScienceItem;
 import zettabyte.weirdscience.core.recipe.IRecipeProvider;
 import zettabyte.weirdscience.core.recipe.IWorkbenchRecipe;
+import cpw.mods.fml.common.IFuelHandler;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 
@@ -47,7 +50,7 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
  * Author: Gyro
  */
 
-public class ContentRegistry {
+public class ContentRegistry implements IFuelHandler {
 	//My favorite superhero.
 	public BucketEventManager bucketMan;
 
@@ -72,6 +75,13 @@ public class ContentRegistry {
 	public static final String modID = "WeirdScience";
 	
 	public ArrayList<String> soundNames = new ArrayList<String>(24);
+
+	//For Vanilla furnaces. (ItemID, DamageValue) to burn time.
+	private HashMap<ImmutablePair<Integer, Integer>, Integer> fuelDataSpecific = 
+			new HashMap<ImmutablePair<Integer, Integer>, Integer>(10);
+	//For Vanilla furnaces. Item ID to burn time, does not care about damage value.
+	private HashMap<Integer, Integer> fuelDataSimple = 
+			new HashMap<Integer, Integer>(10);
 
 
 	public ContentRegistry(Configuration setConfig, Logger setLogger, CreativeTabs setTab) {
@@ -226,6 +236,7 @@ public class ContentRegistry {
 		}
 
 		initToDo = null;
+		GameRegistry.registerFuelHandler(this);
 	}
 	
 	//Init the blocks that we've got to register after all of the config is done.
@@ -277,7 +288,17 @@ public class ContentRegistry {
 						//Per-subblock operations
 						GeneralRegister(si);
 						LanguageRegistry.addName(new ItemStack(item, 1, si.getAssociatedMeta()), si.getEnglishName());
+						//Fuel stuff.
+						if(si.getFurnaceFuelValue() > 0) {
+							fuelDataSpecific.put(new ImmutablePair<Integer,Integer>
+							(item.itemID, si.getAssociatedMeta()),
+									si.getFurnaceFuelValue());
+						}
 					}
+				}
+				//Fuel stuff for non-sub-item-users.
+				else if (wsi.getFurnaceFuelValue() > 0) {
+					fuelDataSimple.put(item.itemID, wsi.getFurnaceFuelValue());
 				}
 			}
 			
@@ -286,7 +307,7 @@ public class ContentRegistry {
 	
 	//Init the items that we have after all configuration is done.
 	protected void FinalizeFluids() {
-		//This doesn't work the way we thought it did.
+		//This doesn't work the way I thought it did.
 		/*for(int i = 0; i < fluidsToRegister.size(); ++i) {
 			Fluid fluid = fluidsToRegister.get(i);
 		}*/
@@ -347,5 +368,17 @@ public class ContentRegistry {
 		for(IReactionReceiver rec : reactants) {
 			rec.registerReaction(reaction);
 		}
+	}
+
+	@Override
+	public int getBurnTime(ItemStack fuel) {
+		if(fuelDataSimple.containsKey(fuel.itemID)) {
+			return fuelDataSimple.get(fuel.itemID);
+		}
+		ImmutablePair<Integer, Integer> itemDef = new ImmutablePair(fuel.itemID, fuel.getItemDamage());
+		if(fuelDataSpecific.containsKey(itemDef)) {
+			return fuelDataSpecific.get(itemDef);
+		}
+		return 0;
 	}
 }

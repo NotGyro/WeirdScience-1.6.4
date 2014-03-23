@@ -10,6 +10,7 @@ public class SubItem implements ISubItem {
 	protected String name = "";
 	protected String englishName = "";
 	protected int assocMeta = 0;
+	private int furnaceFuelValue;
 	
 	public SubItem() {}
 	
@@ -79,6 +80,15 @@ public class SubItem implements ISubItem {
 	@Override
 	public boolean isEnabled() {
 		return true;
+	}
+
+	@Override
+	public int getFurnaceFuelValue() {
+		return furnaceFuelValue;
+	}
+
+	public void setFurnaceFuelValue(int val) {
+		furnaceFuelValue = val;
 	}
 
 }

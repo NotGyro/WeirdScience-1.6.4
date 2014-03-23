@@ -23,6 +23,10 @@ public class ReactionSpec implements IReactionSpec {
 	public int solventMin = 0; //Minimum solvent quantity for the reaction to take place.
 	public int soluteMin = 0; //Minimum solvent quantity for the reaction to take place.
 
+	public Integer heatUpper = null;
+	public Integer heatLower = null;
+	public int heatChange = 0;
+
 	public ReactionSpec() {}
 	public ReactionSpec(Fluid solv, Object sol, Object targ1, Object targ2) {
 		solvent = solv;
@@ -77,6 +81,18 @@ public class ReactionSpec implements IReactionSpec {
 	@Override
 	public int getSoluteMin() {
 		return soluteMin;
+	}
+	@Override
+	public Integer getHeatLowerBound() {
+		return null;
+	}
+	@Override
+	public Integer getHeatUpperBound() {
+		return null;
+	}
+	@Override
+	public int getHeatChangeProduced() {
+		return heatChange;
 	}
 	
 }

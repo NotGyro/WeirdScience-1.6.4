@@ -240,6 +240,9 @@ public class WeirdScienceContent {
 		//TODO: Thermite item behavior.
 		ItemBase itemThermite = new ItemBase(config, "Thermite");
 		itemThermite.setTextureName("weirdscience:thermiteitem");
+		//20,000 is the fuel value of a lava bucket.
+		int thermiteFuelValue = config.get("Thermite", "Furnace fuel value of Thermite", 5000).getInt();
+		itemThermite.setFurnaceFuelValue(thermiteFuelValue);
 		cr.RegisterItem(itemThermite);
 		
 		TileEntityGunpowderEngine.thermite = itemThermite;
@@ -277,6 +280,23 @@ public class WeirdScienceContent {
 		alumDissolve.soluteAffected = true;
 		alumDissolve.solventAffected = false;
 		cr.RegisterReaction(alumDissolve);
+
+		//Acids and bases kill grass dead.
+		ReactionSpec grassDissolveAcid = new ReactionSpec();
+		grassDissolveAcid.solvent = fluidAcid;
+		grassDissolveAcid.solute = Block.grass;
+		grassDissolveAcid.soluteTarget = Block.dirt;
+		grassDissolveAcid.solventAffected = false;
+		grassDissolveAcid.soluteAffected = true;
+		cr.RegisterReaction(grassDissolveAcid);
+		
+		ReactionSpec grassDissolveBase = new ReactionSpec();
+		grassDissolveBase.solvent = fluidBase;
+		grassDissolveBase.solute = Block.grass;
+		grassDissolveBase.soluteTarget = Block.dirt;
+		grassDissolveBase.solventAffected = false;
+		grassDissolveBase.soluteAffected = true;
+		cr.RegisterReaction(grassDissolveBase);
 		
 		
 		ArrayList<ItemStack> aluminumIngots = OreDictionary.getOres("ingotAluminum");
