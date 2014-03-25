@@ -3,8 +3,6 @@ package zettabyte.weirdscience.core.thermal;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import zettabyte.weirdscience.cofh.util.BlockCoord;
 import zettabyte.weirdscience.cofh.util.ChunkCoord;
 import net.minecraft.world.World;
@@ -19,10 +17,8 @@ public class HeatManager {
 	//Apologies for the nested types. Was necessary in this case.
 	//Key: Coordinate of the chunk to investigate.
 	//ArrayList: Heat handlers in the chunk.
-	//Immutable pair type: Coordinate of, and instance of, heat handler.
-	private final HashMap<ChunkCoord, ArrayList<
-					ImmutablePair<BlockCoord, IHeatHandler> >> handlerChunks
-					= new HashMap<ChunkCoord, ArrayList<ImmutablePair<BlockCoord, IHeatHandler>>>(128);
+	private final HashMap<ChunkCoord, ArrayList<IHeatHandler>> handlerChunks
+					= new HashMap<ChunkCoord, ArrayList<IHeatHandler>>(128);
 	
 	
 	
@@ -50,26 +46,23 @@ public class HeatManager {
 	//Avoiding some copy+paste
 	private final int getHeatFromChunk(ChunkCoord chunk, int x, int y, int z) {
 		//Check to be sure that the target block is loaded.
-		if(!world.blockExists(x, y, z)) {
-			throw new IllegalArgumentException(
-					"Attempted to get heat information for block at " + x + "," + y + "," + z + ", which does not exist.");
+		ArrayList<IHeatHandler> handlers = getHandlersInChunk(chunk);
+		if(handlers == null) {
+			return this.getAmbientHeatAt(x, y, z);
 		}
-		ArrayList<ImmutablePair<BlockCoord, IHeatHandler>> handlers
-		= handlerChunks.get(chunk);
 		int total = 0;
 		//Iterate through aforementioned list.
 		//Assume the IHeatHandler can deal with its own range mechanics.
 		for(int i = 0; i < handlers.size(); ++i) {
-			ImmutablePair<BlockCoord, IHeatHandler> current = handlers.get(i);
+			IHeatHandler current = handlers.get(i);
 
 			//Make sure our heat producer is loaded.
-			if(!world.blockExists(current.left.x, current.left.y, current.left.z)) {
+			if(!world.blockExists(current.getPosition().x, current.getPosition().y, current.getPosition().z)) {
 				throw new IllegalArgumentException(
 						"Attempted to get heat information produced by block at "
 							+ x + "," + y + "," + z + ", which does not exist.");
 			}
-			total += current.right.getHeatAt(world, 
-					current.left.x, current.left.y, current.left.z, x, y, z);
+			total += current.getHeatAt(x, y, z);
 		}
 		return total;
 	}
@@ -80,26 +73,26 @@ public class HeatManager {
 		return 18;
 	}
 	
-	public final void RegisterHeatBlock(IHeatHandler toReg, int x, int y, int z) {
-		BlockCoord blockCoord = new BlockCoord(x, y, z);
+	public final void RegisterHeatBlock(IHeatHandler toReg) {
+		BlockCoord blockCoord = new BlockCoord(toReg.getPosition().x, toReg.getPosition().y, toReg.getPosition().z);
 		ChunkCoord chunkCoord = new ChunkCoord(blockCoord);
 
-		ArrayList<ImmutablePair<BlockCoord, IHeatHandler>> handlers = null;
+		ArrayList<IHeatHandler> handlers = null;
 		if(!handlerChunks.containsKey(chunkCoord)) {
-			handlers = new ArrayList<ImmutablePair<BlockCoord, IHeatHandler>>(32);
+			handlers = new ArrayList<IHeatHandler>(32);
 			handlerChunks.put(chunkCoord, handlers);
 		}
 		else {
 			handlers = handlerChunks.get(chunkCoord);
 		}
 		
-		handlers.add(new ImmutablePair<BlockCoord, IHeatHandler>(blockCoord, toReg));
+		handlers.add(toReg);
 	}	
-	public final void UnregisterHeatBlock(IHeatHandler toReg, int x, int y, int z) {
-		BlockCoord blockCoord = new BlockCoord(x, y, z);
+	public final void UnregisterHeatBlock(IHeatHandler toReg) {
+		BlockCoord blockCoord = new BlockCoord(toReg.getPosition().x, toReg.getPosition().y, toReg.getPosition().z);
 		ChunkCoord chunkCoord = new ChunkCoord(blockCoord);
 
-		ArrayList<ImmutablePair<BlockCoord, IHeatHandler>> handlers = null;
+		ArrayList<IHeatHandler> handlers = null;
 		if(!handlerChunks.containsKey(chunkCoord)) {
 			//There's no way this exists to unreg to begin with.
 			return;
@@ -109,10 +102,21 @@ public class HeatManager {
 		}
 		for(int i = 0; i < handlers.size(); ++i) {
 			//Compare position
-			if(((handlers.get(i).left.x == x) && (handlers.get(i).left.y == y)) && (handlers.get(i).left.x == z)) {
+			if(((handlers.get(i).getPosition().x == toReg.getPosition().x) && 
+					(handlers.get(i).getPosition().y == toReg.getPosition().y)) && 
+					(handlers.get(i).getPosition().x == toReg.getPosition().z)) {
 				//Remove this element from the list.
 				handlers.remove(i);
 			}
 		}	
+	}
+	
+	public ArrayList<IHeatHandler> getHandlersInChunk(ChunkCoord chunk) {
+		//Check to be sure that the target block is loaded.
+		if(!world.blockExists(chunk.chunkX << 4, 64, chunk.chunkZ << 4)) {
+			throw new IllegalArgumentException(
+					"Attempted to get heat information for chunk at " + chunk.chunkX + "," + chunk.chunkZ + ", which is not loaded.");
+		}
+		return handlerChunks.get(chunk);
 	}
 }

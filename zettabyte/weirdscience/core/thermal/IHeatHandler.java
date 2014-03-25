@@ -1,5 +1,6 @@
 package zettabyte.weirdscience.core.thermal;
 
+import zettabyte.weirdscience.cofh.util.BlockCoord;
 import net.minecraft.world.World;
 
 /**
@@ -10,13 +11,13 @@ public interface IHeatHandler {
 	/**
 	 * @return Absolute, not relative to ambient temperature in biome.
 	 */
-	int getHeat(World world, int x, int y, int z);
+	int getHeat();
 	/**
 	 * First set of coordinates is the position of our block.
 	 * The second set of coordinates is the position of the block
 	 * we are checking - the block affected by this one's heat.
 	 */
-	int getHeatAt(World world, int x, int y, int z, int targetX, int targetY, int targetZ);
+	int getHeatAt(int targetX, int targetY, int targetZ);
 	
 	/**
 	 * Takes in the largest (absolute, distance-from-zero) value to
@@ -25,7 +26,7 @@ public interface IHeatHandler {
 	 * @return The greatest (distance-from-zero) value up to maxAlter
 	 * we can shift this IHeatHandler's temperature by.
 	 */
-	int AmountAlterHeat(int maxAlter, World world, int x, int y, int z); 
+	int AmountAlterHeat(int maxAlter); 
 	
 	/**
 	 * Attempts to shift our IHeatHandler's temperature
@@ -34,5 +35,29 @@ public interface IHeatHandler {
 	 * @return The value by which our temperature was
 	 * ultimately altered.
 	 */
-	int AlterHeat(int maxAlter, World world, int x, int y, int z);
+	int AlterHeat(int maxAlter);
+	
+	/**
+	 * Used by the heat manager classes to inform heat handler tiles
+	 * of the existence of other heat handler tiles. Add to a cache
+	 * of heat handlers within range here.
+	 */
+	void NotifyNearby(IHeatHandler other);
+	
+	/**
+	 * Clean-up function: When a heat handler dies, notify other
+	 * heat handlers that it is no longer supposed to exist.
+	 */
+	void NearbyRemoved(IHeatHandler other);
+	
+	/**
+	 * Not guaranteed to be valid with Redstone in Motion frames;
+	 * needs testing.
+	 */
+	BlockCoord getPosition();
+	
+	/**
+	 * Called when removed.
+	 */
+	void onKill();
 }

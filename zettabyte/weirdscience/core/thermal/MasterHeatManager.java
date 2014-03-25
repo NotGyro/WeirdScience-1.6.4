@@ -24,4 +24,6 @@ public class MasterHeatManager {
 			return newMan;
 		}
 	}
+	
+	public static IHeatHandler[] fakeHandlers = new IHeatHandler[4096]; //Mapped to block ID
 }
